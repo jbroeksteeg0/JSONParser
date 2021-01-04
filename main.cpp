@@ -1,16 +1,12 @@
 #include <iostream>
-#include <fstream>
 #include "JSONParser.h"
 
 int main() {
-	std::string data;
-	std::ifstream in("data.json");
-	std::getline(in,data);
-	
 	JSONParser::JSONObject res = JSONParser::fromFile("data.json");
 	
-	//res.print();
+	std::string temp = JSONParser::toString(res);
+	JSONParser::JSONObject again = JSONParser::parseString(temp);
+	temp = JSONParser::toString(again);
 	
-	std::cout << JSONParser::toString(res) << std::endl;
     return 0;
 }

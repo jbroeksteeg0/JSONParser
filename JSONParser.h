@@ -140,7 +140,7 @@ public:
 		} else if (type == String) {
 			curr += '"';
 			for (char ch: valueString) {
-				if (ch=='"') curr += '\\';
+				if (ch=='"' || ch =='\\') curr += '\\';
 				curr+=ch;
 			}
 			curr += '"';
@@ -213,11 +213,12 @@ void advanceWhitespace() {
 std::string internal_parseString() {
 	mAssert(inputIter < inputString.end(), "Parsing string: iter out of bounds");
 	mAssert(*inputIter == '"', "Parsing string: function started on " + std::to_string(*inputIter));
-	std::string ret;
+	
+	std::string ret="";
 	
 	inputIter++;
 	while (*inputIter != '"') {
-		if (*inputIter == '\\' && (inputIter+1)!=inputString.end()&&*(inputIter+1)=='"') {
+		if (*inputIter == '\\' && (inputIter+1)<inputString.end()) {
 			ret += *(inputIter+1);
 			inputIter+=2;
 		} else {
