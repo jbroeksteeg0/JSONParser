@@ -7,6 +7,7 @@ int main() {
 	std::string temp = JSONParser::toString(res);
 	JSONParser::JSONObject again = JSONParser::parseString(temp);
 	temp = JSONParser::toString(again);
-	
+
+	std::cout << temp << std::endl;
     return 0;
 }

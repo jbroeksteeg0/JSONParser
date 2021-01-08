@@ -18,7 +18,7 @@ enum ValueType {
 	Array,
 	Number,
 	String,
-	Empty
+	Null
 };
 
 namespace JSONParser {
@@ -30,7 +30,7 @@ private:
 public:
 	ValueType type;
 		
-	JSONObject() {type = Empty;}
+	JSONObject() {type = Null;}
 	JSONObject(ValueType t): type(t) {}
 	JSONObject(std::string s) {
 		type = String;
@@ -40,7 +40,7 @@ public:
 		type = Number;
 		valueString = std::to_string(f);
 	}
-	
+
 	bool operator<(const JSONObject& rhs) const {
 		return valueString<rhs.valueString;
 	}
@@ -95,6 +95,10 @@ public:
 		mAssert(type == Array, "Append must be called on array");
 		children[ JSONObject(children.size()) ] = JSONObject(value);
 	}
+	void append(bool value) {
+		mAssert(type == Array, "Append must be called on array");
+		children[ JSONObject(children.size()) ] = JSONObject(value);
+	}
 	
 	int size() {
 		mAssert(type == Array || type == Dictionary, "Size can only be called on a dictionary or string");
@@ -146,8 +150,8 @@ public:
 			curr += '"';
 		} else if (type == Number) {
 			curr += valueString;
-		} else if (type == Empty) {
-			curr += "NULL";
+		} else if (type == Null) {
+			curr += "null";
 		}
 	}
 	
@@ -195,7 +199,7 @@ public:
 		} else if (type == String) {
 			for (int i = 0; i < (skipFirst?0:indent); i++) std::cout << " ";
 			std::cout << "\"" << getValueString() << "\"" << (doComma?",":"") << std::endl;
-		} else if (type == Empty) {
+		} else if (type == Null) {
 			for (int i = 0; i < (skipFirst?0:indent); i++) std::cout << " ";
 			std::cout << "NULL" << (doComma?",":"") << std::endl;
 		}
@@ -229,6 +233,21 @@ std::string internal_parseString() {
 	inputIter++;
 	return ret;
 }
+
+JSONObject internal_parseNull() {
+	inputIter+=4;
+	return JSONObject(Null);
+}
+JSONObject internal_parseBool() {
+	if (*inputIter == 't') {
+		inputIter+=4;
+		return JSONObject(1);
+	} else {
+		inputIter+=5;
+		return JSONObject(0);
+	}
+}
+
 float internal_parseNumber() {
 	mAssert(inputIter < inputString.end(), "Parsing number: iter out of bounds");
 	mAssert(isdigit(*inputIter), "Parser number: must start on digit, got " + std::string(1,*inputIter));
@@ -285,14 +304,20 @@ JSONObject internal_parseDictionary() {
 		inputIter++;
 		advanceWhitespace();
 		curr = *inputIter;
+
+		// VALUE
 		if (curr == '[') {
 			value = internal_parseArray();
 		} else if (curr == '{') {
 			value = internal_parseDictionary();
 		} else if (curr == '"') {
 			value = internal_parseString();
+		} else if (curr == 'n') {
+			value = internal_parseNull();
 		} else if (isdigit(curr)){
 			value = internal_parseNumber();
+		} else if (curr == 't' || curr == 'f') {
+			value = internal_parseBool();
 		}
 		res[key] = value;
 		mAssert(*inputIter == '}' || *inputIter == ',', "Incorrect character after passing dict item, got '" + std::string(1,*inputIter) + "'");
@@ -330,6 +355,10 @@ JSONObject internal_parseArray() {
 			res.append(internal_parseArray());
 		} else if (curr == '{') {
 			res.append(internal_parseDictionary());
+		} else if (curr == 'n') {
+			res.append(internal_parseNull());
+		} else if (curr == 't' || curr == 'f') {
+			res.append(internal_parseBool());
 		} else if (isdigit(curr)) {
 			res.append(internal_parseNumber());
 		}
