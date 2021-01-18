@@ -149,7 +149,7 @@ JSONParser::JSONObject JSONParser::internal_parseArray() {
 	while (true) {
 		advanceWhitespace();
 		char curr = *inputIter;
-		mAssert(curr == '[' || curr == '{' || curr == '"' || isdigit(curr), "Unexpected character: " + std::to_string(curr));
+		mAssert(curr == '[' || curr == '{' || curr == '"' || isdigit(curr) || curr == 't' || curr == 'f', "Unexpected character: " + std::to_string(curr));
 
 		if (curr == '"') {
 			res.append(internal_parseString());
@@ -201,10 +201,11 @@ JSONParser::JSONObject JSONParser::fromFile(std::string path) {
 		} else if (raw[i] == '"') { // nonescaped quote
 			res+=raw[i];
 			inString=!inString;
-		} else if (raw[i] != '\n' || inString) { // other character
+		} else if (!iswspace(raw[i])|| inString) { // other character
 			res += raw[i];
 		}
 	}
+
 	return parseString(res);
 }
 
