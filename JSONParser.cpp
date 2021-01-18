@@ -24,7 +24,7 @@ std::string JSONParser::internal_parseString() {
 
 	inputIter++;
 	while (*inputIter != '"') {
-		if (*inputIter == '\\' && (inputIter+1)<inputString.end()) {
+		if (*inputIter == '\\' && (inputIter+1)<inputString.end() && *(inputIter+1)=='"') {
 			ret += *(inputIter+1);
 			inputIter+=2;
 		} else {
